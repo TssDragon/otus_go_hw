@@ -7,7 +7,10 @@ import (
 	"unicode"
 )
 
-var ErrInvalidString = errors.New("invalid string")
+var (
+	ErrWrongEscape          = errors.New("invalid escape sequence")
+	ErrInvalidDigitPosition = errors.New("invalid digit position in string")
+)
 
 func Unpack(packedString string) (string, error) {
 	var result strings.Builder
@@ -24,7 +27,7 @@ func Unpack(packedString string) (string, error) {
 		// Для первого символа в подпоследовательности
 		if previousRune == 0 {
 			if isDigitCurrentChar {
-				return "", ErrInvalidString
+				return "", ErrInvalidDigitPosition
 			}
 
 			previousRune = currentRune
@@ -37,7 +40,7 @@ func Unpack(packedString string) (string, error) {
 		if isEscapingSequence {
 			// Экранировать можно только обратный слэш и цифры
 			if !isDigitCurrentChar && !isEscapeChar(currentRune) {
-				return "", ErrInvalidString
+				return "", ErrWrongEscape
 			}
 
 			previousRune = currentRune
@@ -64,7 +67,7 @@ func Unpack(packedString string) (string, error) {
 
 	if previousRune != 0 {
 		if !lastSymbolApproved && unicode.IsDigit(previousRune) {
-			return "", ErrInvalidString
+			return "", ErrInvalidDigitPosition
 		}
 		result.WriteRune(previousRune)
 	}

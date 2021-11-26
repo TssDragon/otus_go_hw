@@ -25,6 +25,8 @@ func TestUnpack(t *testing.T) {
 		{input: `qwe\\\3`, expected: `qwe\3`},
 		{input: "абываыва", expected: "абываыва"},
 		{input: "аа3пп4я", expected: "аааапппппя"},
+		{input: "      ", expected: "      "},
+		{input: "str-3str0", expected: "str---st"},
 	}
 
 	for _, tc := range tests {
@@ -37,13 +39,24 @@ func TestUnpack(t *testing.T) {
 	}
 }
 
-func TestUnpackInvalidString(t *testing.T) {
-	invalidStrings := []string{"3abc", "45", "aaa10b", "abc33"}
+func TestUnpackStringHasInvalidDigitPosition(t *testing.T) {
+	invalidStrings := []string{"3abc", "45", "aaa10b", "-42", "aaa10b", "abc33"}
 	for _, tc := range invalidStrings {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
 			_, err := Unpack(tc)
-			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
+			require.Truef(t, errors.Is(err, ErrInvalidDigitPosition), "actual error %q", err)
+		})
+	}
+}
+
+func TestUnpackStringWrongEscapeSequence(t *testing.T) {
+	invalidStrings := []string{"as\\`asd", "\\asd"}
+	for _, tc := range invalidStrings {
+		tc := tc
+		t.Run(tc, func(t *testing.T) {
+			_, err := Unpack(tc)
+			require.Truef(t, errors.Is(err, ErrWrongEscape), "actual error %q", err)
 		})
 	}
 }
@@ -53,7 +66,7 @@ func TestUnpackSpecialCharacters(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{input: "-+)(*&^^%$", expected: "-+)(*&^^%$"},
+		{input: "-+)(*&^^%$@", expected: "-+)(*&^^%$@"},
 		{input: "_2!4'2;8", expected: "__!!!!'';;;;;;;;"},
 		{input: "`", expected: "`"},
 	}
