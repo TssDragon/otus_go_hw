@@ -10,49 +10,68 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(packedString string) (string, error) {
-
 	var result strings.Builder
-	var prevRune rune
+	var previousRune rune
+	isEscapingSequence := false
+	lastSymbolApproved := false
 
-	for _, currRune := range packedString {
+	for _, currentRune := range packedString {
+		isDigitCurrentChar := unicode.IsDigit(currentRune)
+		currentChar := string(currentRune)
+		previousChar := string(previousRune)
+		lastSymbolApproved = false
 
-		isDigitCurrentChar := unicode.IsDigit(currRune)
-		isDigitPrevChar := unicode.IsDigit(prevRune)
-		currChar := string(currRune)
-
-		if prevRune == 0 {
+		// Для первого символа в подпоследовательности
+		if previousRune == 0 {
 			if isDigitCurrentChar {
 				return "", ErrInvalidString
 			}
-			prevRune = currRune
+
+			previousRune = currentRune
+			if isEscapeChar(currentRune) {
+				isEscapingSequence = true
+			}
 			continue
 		}
 
-		if isDigitCurrentChar && !isDigitPrevChar {
+		if isEscapingSequence {
+			// Экранировать можно только обратный слэш и цифры
+			if !isDigitCurrentChar && !isEscapeChar(currentRune) {
+				return "", ErrInvalidString
+			}
 
-			repeat, _ := strconv.Atoi(currChar)
-			result.WriteString(strings.Repeat(string(prevRune), repeat))
-			prevRune = 0
+			previousRune = currentRune
+			isEscapingSequence = false
+			lastSymbolApproved = true
 			continue
 		}
 
-		if isDigitCurrentChar && isDigitPrevChar {
+		if isDigitCurrentChar {
+			charactersCount, _ := strconv.Atoi(currentChar)
+			result.WriteString(strings.Repeat(previousChar, charactersCount))
+			previousRune = 0
+			continue
+		}
+
+		result.WriteRune(previousRune)
+		previousRune = currentRune
+
+		if isEscapeChar(currentRune) {
+			isEscapingSequence = true
+			continue
+		}
+	}
+
+	if previousRune != 0 {
+		if !lastSymbolApproved && unicode.IsDigit(previousRune) {
 			return "", ErrInvalidString
 		}
-
-		if !isDigitCurrentChar {
-			result.WriteRune(prevRune)
-			prevRune = currRune
-		}
-	}
-
-	if prevRune != 0 && unicode.IsDigit(prevRune) {
-		return "", ErrInvalidString
-	}
-
-	if prevRune != 0 {
-		result.WriteRune(prevRune)
+		result.WriteRune(previousRune)
 	}
 
 	return result.String(), nil
+}
+
+func isEscapeChar(r rune) bool {
+	return string(r) == "\\"
 }
