@@ -25,7 +25,7 @@ func Top10(inStr string) []string {
 		if !keyExists {
 			wordsMap[word] = 1
 		} else {
-			wordsMap[word] += 1
+			wordsMap[word]++
 		}
 	}
 
