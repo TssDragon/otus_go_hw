@@ -34,7 +34,7 @@ func Top10(inStr string) []string {
 		Value int
 	}
 
-	var wordsSlice []userMap
+	wordsSlice := make([]userMap, 0)
 	for k, v := range wordsMap {
 		wordsSlice = append(wordsSlice, userMap{k, v})
 	}
@@ -46,7 +46,7 @@ func Top10(inStr string) []string {
 		return wordsSlice[i].Value > wordsSlice[j].Value
 	})
 
-	var result []string
+	result := make([]string, 0)
 	for _, val := range wordsSlice {
 		result = append(result, val.Key)
 
