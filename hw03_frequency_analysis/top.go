@@ -6,14 +6,12 @@ import (
 	"strings"
 )
 
+var replaceRegExp = regexp.MustCompile(`([.,;]+)|([^a-zа-я]+-[^a-zа-я]+)`)
+
 func Top10(inStr string) []string {
-	replaceRegExp := regexp.MustCompile(`([.,;]+)|([^a-zA-Zа-яА-Я]+-[^a-zA-Zа-яА-Я]+)`)
-	inStr = replaceRegExp.ReplaceAllString(inStr, " ")
-
 	inStr = strings.ToLower(inStr)
-
-	splitRegExp := regexp.MustCompile(`\s+`)
-	splitWords := splitRegExp.Split(inStr, -1)
+	inStr = replaceRegExp.ReplaceAllString(inStr, " ")
+	splitWords := strings.Fields(inStr)
 
 	wordsMap := make(map[string]int)
 	for _, word := range splitWords {
@@ -23,10 +21,9 @@ func Top10(inStr string) []string {
 
 		_, keyExists := wordsMap[word]
 		if !keyExists {
-			wordsMap[word] = 1
-		} else {
-			wordsMap[word]++
+			wordsMap[word] = 0
 		}
+		wordsMap[word]++
 	}
 
 	type userMap struct {
@@ -34,7 +31,7 @@ func Top10(inStr string) []string {
 		Value int
 	}
 
-	wordsSlice := make([]userMap, 0)
+	var wordsSlice []userMap //nolint:prealloc
 	for k, v := range wordsMap {
 		wordsSlice = append(wordsSlice, userMap{k, v})
 	}
@@ -46,7 +43,7 @@ func Top10(inStr string) []string {
 		return wordsSlice[i].Value > wordsSlice[j].Value
 	})
 
-	result := make([]string, 0)
+	var result []string //nolint:prealloc
 	for _, val := range wordsSlice {
 		result = append(result, val.Key)
 
