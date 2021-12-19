@@ -43,7 +43,7 @@ func Top10(inStr string) []string {
 		return wordsSlice[i].Value > wordsSlice[j].Value
 	})
 
-	var result []string //nolint:prealloc
+	var result []string
 	for i := 0; i < len(wordsSlice) && i < 10; i++ {
 		result = append(result, wordsSlice[i].Key)
 	}
