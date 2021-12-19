@@ -44,12 +44,8 @@ func Top10(inStr string) []string {
 	})
 
 	var result []string //nolint:prealloc
-	for _, val := range wordsSlice {
-		result = append(result, val.Key)
-
-		if len(result) == 10 {
-			break
-		}
+	for i := 0; i < len(wordsSlice) && i < 10; i++ {
+		result = append(result, wordsSlice[i].Key)
 	}
 
 	return result
