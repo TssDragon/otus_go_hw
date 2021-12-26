@@ -24,6 +24,7 @@ type cacheItem struct {
 
 func (cache *lruCache) Set(key Key, value interface{}) bool {
 	cache.Lock()
+	defer cache.Unlock()
 
 	item, ok := cache.items[key]
 	if ok {
@@ -42,7 +43,6 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 		cache.items[key] = listItem
 	}
 
-	cache.Unlock()
 	return ok
 }
 
