@@ -7,7 +7,7 @@ import (
 )
 
 // RunCmd runs a command + arguments (cmd) with environment variables from env.
-func RunCmd(cmd []string, env Environment) int {
+func RunCmd(cmd []string, env Environment) (exitCode int) {
 	argCmd := cmd[0]
 	args := cmd[1:]
 	localEnv := makeEnvAsStringSlice(env)
@@ -30,7 +30,7 @@ func makeEnvAsStringSlice(env Environment) []string {
 	return sliceEnv
 }
 
-func realRunCmd(cmd string, args []string, env []string) int {
+func realRunCmd(cmd string, args []string, env []string) (exitCode int) {
 	execCmd := exec.Command(cmd, args...)
 
 	execCmd.Env = append(os.Environ(), env...)
@@ -38,11 +38,10 @@ func realRunCmd(cmd string, args []string, env []string) int {
 	execCmd.Stdin = os.Stdin
 	execCmd.Stderr = os.Stderr
 
-	exitCode := 1
 	if err := execCmd.Run(); err != nil {
 		fmt.Println(err)
 		state := execCmd.ProcessState
-		exitCode = state.ExitCode()
+		return state.ExitCode()
 	}
-	return exitCode
+	return
 }
