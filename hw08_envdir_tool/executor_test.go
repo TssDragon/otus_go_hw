@@ -7,7 +7,7 @@ import (
 )
 
 func TestRunCmd(t *testing.T) {
-	t.Run("prepare correct env", func(t *testing.T) {
+	t.Run("common test", func(t *testing.T) {
 		cmd := []string{
 			"echo",
 			"test",

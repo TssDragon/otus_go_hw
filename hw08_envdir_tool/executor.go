@@ -7,7 +7,7 @@ import (
 )
 
 // RunCmd runs a command + arguments (cmd) with environment variables from env.
-func RunCmd(cmd []string, env Environment) (returnCode int) {
+func RunCmd(cmd []string, env Environment) int {
 	argCmd := cmd[0]
 	args := cmd[1:]
 	localEnv := makeEnvAsStringSlice(env)
