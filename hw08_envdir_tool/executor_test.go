@@ -14,7 +14,7 @@ func TestRunCmd(t *testing.T) {
 		}
 		env := Environment{}
 		resultStatusCode := RunCmd(cmd, env)
-		expectedStatusCode := 1
+		expectedStatusCode := 0
 
 		require.Equal(t, expectedStatusCode, resultStatusCode)
 	})
@@ -23,7 +23,7 @@ func TestRunCmd(t *testing.T) {
 func TestRealRunCmd(t *testing.T) {
 	t.Run("positive real run cmd", func(t *testing.T) {
 		resultStatusCode := realRunCmd("echo", []string{"test"}, []string{})
-		expectedStatusCode := 1
+		expectedStatusCode := 0
 		require.Equal(t, expectedStatusCode, resultStatusCode)
 	})
 
@@ -35,7 +35,7 @@ func TestRealRunCmd(t *testing.T) {
 
 	t.Run("empty args run", func(t *testing.T) {
 		resultStatusCode := realRunCmd("echo", []string{}, []string{})
-		expectedStatusCode := 1
+		expectedStatusCode := 0
 		require.Equal(t, expectedStatusCode, resultStatusCode)
 	})
 }
