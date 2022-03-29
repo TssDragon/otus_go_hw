@@ -114,6 +114,10 @@ func makeValidationRulesFromRawData(rawData string) (ValidationRules, error) {
 	rules := strings.Split(rawData, "|")
 	for _, rule := range rules {
 		splitOperatorAndValue := strings.Split(rule, ":")
+		if len(splitOperatorAndValue) != 2 {
+			continue
+		}
+
 		operator, err := detectValidationOperator(splitOperatorAndValue[0])
 		if err != nil {
 			return ValidationRules{}, err
