@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,11 +33,10 @@ func TestReadDir(t *testing.T) {
 	})
 
 	t.Run("empty dir", func(t *testing.T) {
-		emptyDir := testDir + string(filepath.Separator) + "empty_dir"
-		os.Mkdir(emptyDir, 0o777)
-		result, _ := ReadDir(emptyDir)
+		emptyDirPath, _ := os.MkdirTemp(testDir, "test")
+		fmt.Println(emptyDirPath)
+		result, _ := ReadDir(emptyDirPath)
 		expectedEnv := Environment{}
-		os.Remove(emptyDir)
 
 		require.Equal(t, expectedEnv, result)
 	})
