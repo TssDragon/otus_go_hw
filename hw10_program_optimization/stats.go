@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/valyala/fastjson"
@@ -20,21 +19,16 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	return domainStat, nil
 }
 
-func parseDataAndComputeStat(r io.Reader, searchDomain string) (result DomainStat, err error) {
+func parseDataAndComputeStat(r io.Reader, firstLevelDomain string) (result DomainStat, err error) {
 	result = make(DomainStat, 100)
-	var p fastjson.Parser
 
-	re, err := regexp.Compile("\\." + searchDomain)
-	if err != nil {
-		return nil, err
-	}
-
+	var jsonParser fastjson.Parser
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		val, err := p.ParseBytes(scanner.Bytes())
+		val, err := jsonParser.ParseBytes(scanner.Bytes())
 		if err == nil {
-			email := val.GetStringBytes("Email")
-			if re.Match(email) {
+			email := string(val.GetStringBytes("Email"))
+			if strings.Contains(email, firstLevelDomain) {
 				fullDomain := strings.ToLower(strings.SplitN(string(email), "@", 2)[1])
 
 				_, keyExists := result[fullDomain]
