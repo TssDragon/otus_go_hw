@@ -1,4 +1,3 @@
-//nolint
 // +build bench
 
 package hw10programoptimization
