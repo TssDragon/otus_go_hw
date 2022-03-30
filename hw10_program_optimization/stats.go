@@ -2,7 +2,6 @@ package hw10programoptimization
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"strings"
 
@@ -12,14 +11,11 @@ import (
 type DomainStat map[string]int
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	domainStat, err := parseDataAndComputeStat(r, domain)
-	if err != nil {
-		return nil, fmt.Errorf("get emails error: %w", err)
-	}
+	domainStat := parseDataAndComputeStat(r, domain)
 	return domainStat, nil
 }
 
-func parseDataAndComputeStat(r io.Reader, firstLevelDomain string) (result DomainStat, err error) {
+func parseDataAndComputeStat(r io.Reader, firstLevelDomain string) (result DomainStat) {
 	result = make(DomainStat, 100)
 
 	var jsonParser fastjson.Parser
@@ -29,7 +25,7 @@ func parseDataAndComputeStat(r io.Reader, firstLevelDomain string) (result Domai
 		if err == nil {
 			email := string(val.GetStringBytes("Email"))
 			if strings.Contains(email, firstLevelDomain) {
-				fullDomain := strings.ToLower(strings.SplitN(string(email), "@", 2)[1])
+				fullDomain := strings.ToLower(strings.SplitN(email, "@", 2)[1])
 
 				_, keyExists := result[fullDomain]
 				if !keyExists {
