@@ -38,10 +38,8 @@ func main() {
 	go writer(telnetClient, cancelFunc)
 	go reader(telnetClient, cancelFunc)
 
-	select {
-	case <-ctx.Done():
-		cancelFunc()
-	}
+	<-ctx.Done()
+	cancelFunc()
 }
 
 func writer(client TelnetClient, cancelFunction context.CancelFunc) {
