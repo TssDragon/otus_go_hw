@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -15,11 +14,8 @@ var timeout time.Duration
 
 const DefaultTimeout = 10
 
-func init() {
-	flag.DurationVar(&timeout, "timeout", DefaultTimeout*time.Second, "connection timeout")
-}
-
 func main() {
+	flag.DurationVar(&timeout, "timeout", DefaultTimeout*time.Second, "connection timeout")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 2 {
@@ -36,21 +32,15 @@ func main() {
 	}
 	defer telnetClient.Close()
 
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancelFunc()
+
 	go writer(telnetClient, cancelFunc)
 	go reader(telnetClient, cancelFunc)
 
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 	select {
-	case <-signalChannel:
-		cancelFunc()
-		signal.Stop(signalChannel)
-		return
-
 	case <-ctx.Done():
-		close(signalChannel)
-		return
+		cancelFunc()
 	}
 }
 
