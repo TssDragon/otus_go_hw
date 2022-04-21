@@ -11,7 +11,7 @@ var ErrHasNoOpenConnection = errors.New("there is no open connection")
 
 type TelnetClient interface {
 	Connect() error
-	io.Closer
+	Close() error
 	Send() error
 	Receive() error
 }

@@ -30,7 +30,12 @@ func main() {
 	if err := telnetClient.Connect(); err != nil {
 		log.Fatalf("Error while open connection: %s", err)
 	}
-	defer telnetClient.Close()
+	defer func(telnetClient TelnetClient) {
+		err := telnetClient.Close()
+		if err != nil {
+			log.Fatalf("Error while close connection: %s", err)
+		}
+	}(telnetClient)
 
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancelFunc()
