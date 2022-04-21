@@ -35,7 +35,11 @@ func (s *Storage) Create(newEvent common.Event) (uuid.UUID, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, event := range s.events {
-		if event.UserID == newEvent.UserID && intersectionDates(newEvent.DateStart, newEvent.DateEnd, event) {
+		datesIntersects, err := intersectionDates(newEvent.DateStart, newEvent.DateEnd, event)
+		if err != nil {
+			return uuid.Nil, err
+		}
+		if event.UserID == newEvent.UserID && datesIntersects {
 			return uuid.UUID{}, ErrDateBusy
 		}
 	}
@@ -54,7 +58,11 @@ func (s *Storage) Update(eventID uuid.UUID, newEvent common.Event) error {
 	if event.UserID != newEvent.UserID {
 		return ErrUserUpdate
 	}
-	if intersectionDates(newEvent.DateStart, newEvent.DateEnd, event) {
+	datesIntersects, err := intersectionDates(newEvent.DateStart, newEvent.DateEnd, event)
+	if err != nil {
+		return err
+	}
+	if datesIntersects {
 		return ErrDateBusy
 	}
 
@@ -82,9 +90,15 @@ func (s *Storage) EventsListOnDate(checkDate string) ([]common.Event, error) {
 		return listToReturn, err
 	}
 	for _, event := range s.events {
-		currDateStart, _ := time.Parse(dateTimeHumanFormat, event.DateStart)
+		currDateStart, err := time.Parse(dateTimeHumanFormat, event.DateStart)
+		if err != nil {
+			return listToReturn, err
+		}
 		currDateStart.Truncate(24 * time.Hour)
-		currDateEnd, _ := time.Parse(dateTimeHumanFormat, event.DateEnd)
+		currDateEnd, err := time.Parse(dateTimeHumanFormat, event.DateEnd)
+		if err != nil {
+			return listToReturn, err
+		}
 		currDateEnd.Truncate(24 * time.Hour)
 		if date == currDateStart || date == currDateEnd {
 			listToReturn = append(listToReturn, event)
@@ -105,9 +119,15 @@ func (s *Storage) EventsListOnWeek(weekStart string) ([]common.Event, error) {
 	weekStartSecond := weekStartDate.Second()
 
 	for _, event := range s.events {
-		currDateTimeStart, _ := time.Parse(dateTimeHumanFormat, event.DateStart)
+		currDateTimeStart, err := time.Parse(dateTimeHumanFormat, event.DateStart)
+		if err != nil {
+			return listToReturn, err
+		}
 		currDateTimeStart.Truncate(24 * time.Hour)
-		currDateTimeEnd, _ := time.Parse(dateTimeHumanFormat, event.DateEnd)
+		currDateTimeEnd, err := time.Parse(dateTimeHumanFormat, event.DateEnd)
+		if err != nil {
+			return listToReturn, err
+		}
 		currDateTimeEnd.Truncate(24 * time.Hour)
 		if compareDateSeconds(weekStartSecond, weekEndSecond, currDateTimeStart.Second(), currDateTimeEnd.Second()) {
 			listToReturn = append(listToReturn, event)
@@ -134,7 +154,10 @@ func (s *Storage) EventsListOnMonth(monthStart string) ([]common.Event, error) {
 	monthStartSecond := monthStartDate.Second()
 
 	for _, event := range s.events {
-		currDateTime, _ := time.Parse(dateTimeHumanFormat, event.DateStart)
+		currDateTime, err := time.Parse(dateTimeHumanFormat, event.DateStart)
+		if err != nil {
+			return listToReturn, err
+		}
 		if currDateTime.Second() >= monthStartSecond && currDateTime.Second() <= monthEndSecond {
 			listToReturn = append(listToReturn, event)
 		}
@@ -142,13 +165,25 @@ func (s *Storage) EventsListOnMonth(monthStart string) ([]common.Event, error) {
 	return listToReturn, nil
 }
 
-func intersectionDates(dateStart string, dateEnd string, eventToCompare common.Event) bool {
-	dateTimeStart, _ := time.Parse(dateTimeHumanFormat, dateStart)
-	dateTimeEnd, _ := time.Parse(dateTimeHumanFormat, dateEnd)
-	eventDateTimeStart, _ := time.Parse(dateTimeHumanFormat, eventToCompare.DateStart)
-	eventDateTimeEnd, _ := time.Parse(dateTimeHumanFormat, eventToCompare.DateEnd)
+func intersectionDates(dateStart string, dateEnd string, eventToCompare common.Event) (bool, error) {
+	dateTimeStart, err := time.Parse(dateTimeHumanFormat, dateStart)
+	if err != nil {
+		return false, err
+	}
+	dateTimeEnd, err := time.Parse(dateTimeHumanFormat, dateEnd)
+	if err != nil {
+		return false, err
+	}
+	eventDateTimeStart, err := time.Parse(dateTimeHumanFormat, eventToCompare.DateStart)
+	if err != nil {
+		return false, err
+	}
+	eventDateTimeEnd, err := time.Parse(dateTimeHumanFormat, eventToCompare.DateEnd)
+	if err != nil {
+		return false, err
+	}
 
 	before := eventDateTimeStart.Before(dateTimeStart) && eventDateTimeEnd.Before(dateTimeStart)
 	after := eventDateTimeStart.After(dateTimeEnd) && eventDateTimeEnd.After(dateTimeEnd)
-	return !(before || after)
+	return !(before || after), nil
 }
