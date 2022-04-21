@@ -22,6 +22,9 @@ func init() {
 }
 
 func main() {
+	var exitCode int
+	defer func() { os.Exit(exitCode) }()
+
 	flag.Parse()
 
 	if flag.Arg(0) == "version" {
@@ -43,7 +46,8 @@ func main() {
 	if err := server.Start(ctx); err != nil {
 		log.Error("failed to start http server: " + err.Error())
 		cancel()
-		os.Exit(1) //nolint:gocritic
+		exitCode = 1
+		return
 	}
 
 	go func() {
