@@ -36,4 +36,11 @@ func TestGetDomainStat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
+
+	t.Run("empty json", func(t *testing.T) {
+		emptyData := ""
+		result, err := GetDomainStat(bytes.NewBufferString(emptyData), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
 }
